@@ -17,27 +17,33 @@ class Author:
             # Handle duplicate names
             conn.rollback()
             cursor.execute("SELECT id FROM authors WHERE name = ?", (self.name,))
-            self.id = cursor.fetchone()[0]
+            row = cursor.fetchone()
+            if row:
+                self.id = row["id"]
         finally:
             conn.close()
 
     def add_article(self, magazine_id, title):
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO articles (title, author_id, magazine_id) VALUES (?, ?, ?)",
-            (title, self.id, magazine_id)
-        )
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute(
+                "INSERT INTO articles (title, author_id, magazine_id) VALUES (?, ?, ?)",
+                (title, self.id, magazine_id)
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
     def articles(self):
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT title FROM articles
-            WHERE author_id = ?
-        """, (self.id,))
-        results = cursor.fetchall()
-        conn.close()
-        return [{'title': row[0]} for row in results]
+        try:
+            cursor.execute("""
+                SELECT title FROM articles
+                WHERE author_id = ?
+            """, (self.id,))
+            results = cursor.fetchall()
+            return [{'title': row['title']} for row in results]
+        finally:
+            conn.close()
