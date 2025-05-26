@@ -1,4 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect('lib/db/database.db')
-cursor = conn.cursor()
+def get_connection():
+    conn = sqlite3.connect('articles.db')
+    conn.row_factory = sqlite3.Row  # Enable named access to columns
+    return conn
